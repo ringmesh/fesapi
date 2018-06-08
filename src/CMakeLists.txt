@@ -360,50 +360,55 @@ endif (${WITH_JAVA_WRAPPING})
 # proxies headers
 INSTALL (
 	FILES ${FESAPI_PROXIES_HEADERS}
-	DESTINATION include/proxies/
+	DESTINATION include/fesapi/proxies/
 )	
 
 # main headers
 INSTALL (
 	FILES ${FESAPI_COMMON_HEADERS}
-	DESTINATION include/common
+	DESTINATION include/fesapi/common
 )
 
 # tools headers
 IF (UNIX) # Methods are not exported  under windows
 	INSTALL (
 		FILES ${FESAPI_TOOLS_HEADERS}
-		DESTINATION include/tools/
+		DESTINATION include/fesapi/tools/
 	)
 ENDIF (UNIX)
 
 # epc headers
 INSTALL (
 	FILES ${FESAPI_EPC_HEADERS}
-	DESTINATION include/epc/
+	DESTINATION include/fesapi/epc/
 )
 
 # resqml headers
 INSTALL (
 	FILES ${FESAPI_RESQML_2_HEADERS}
-	DESTINATION include/${RESQML_PREFIX_2}/
+	DESTINATION include/fesapi/${RESQML_PREFIX_2}/
 )
 
 INSTALL (
 	FILES ${FESAPI_RESQML_2_0_1_HEADERS}
-	DESTINATION include/${RESQML_PREFIX_2_0_1}/
+	DESTINATION include/fesapi/${RESQML_PREFIX_2_0_1}/
 )
 
 # witsml headers
 INSTALL (
 	FILES ${FESAPI_WITSML_HEADERS}
-	DESTINATION include/${WITSML_PREFIX}/
+	DESTINATION include/fesapi/${WITSML_PREFIX}/
 )
 
 # prodml headers
 INSTALL (
 	FILES ${FESAPI_PRODML_2_0_HEADERS}
-	DESTINATION include/${PRODML_PREFIX_2_0}/
+	DESTINATION include/fesapi/${PRODML_PREFIX_2_0}/
+)
+
+INSTALL (
+	FILES ${CMAKE_CURRENT_SOURCE_DIR}/nsDefinitions.h
+	DESTINATION include/fesapi/
 )
 
 # PropertyTypeMapping.xml
