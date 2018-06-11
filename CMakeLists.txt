@@ -21,6 +21,7 @@ if (${UNDER_DEV})
 	set (CS_LIBRARY_NAME ${CS_LIBRARY_NAME}UnderDev)
 endif (${UNDER_DEV})
 
+
 # ============================================================================
 # user variables
 # ============================================================================
@@ -95,6 +96,9 @@ ENDIF (WIN32)
 # Zlib
 FIND_PACKAGE (ZLIB)
 MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY_RELEASE)
+IF (NOT EXISTS ${ZLIB_LIBRARY_RELEASE})
+	MESSAGE(WARNING "The zlib library (ZLIB_LIBRARY_RELEASE variable) does not look to be a valid file. Please modify it.")
+ENDIF ()
 INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
 
 # Minizip
