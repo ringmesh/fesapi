@@ -96,20 +96,9 @@ IF (WIN32)
 ENDIF (WIN32)
 
 # Zlib
-#FIND_PACKAGE (ZLIB)
-#MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY_RELEASE)
-# if find package did not work, it is probably cmake does not looking into the x86_64-linux-gnu directories
-
-SET (ZLIB_INCLUDE_DIR "${ZLIB_ROOT}/include/" CACHE PATH "Path to the directory which contains the zlib header files")
-IF (NOT IS_DIRECTORY ${ZLIB_INCLUDE_DIR})
-	MESSAGE(WARNING "The zlib include dir (ZLIB_INCLUDE_DIR variable) does not look to be a valid directory. Please modify it.")
-ENDIF ()
+FIND_PACKAGE (ZLIB)
+MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY_RELEASE)
 INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
-
-SET (ZLIB_LIBRARY_RELEASE "${ZLIB_ROOT}/lib/" CACHE PATH "Path to the directory which contains the zlib library files")
-IF (NOT EXISTS ${ZLIB_LIBRARY_RELEASE})
-	MESSAGE(WARNING "The zlib library (ZLIB_LIBRARY_RELEASE variable) does not look to be a valid file. Please modify it.")
-ENDIF ()
 
 # Minizip
 SET (MINIZIP_INCLUDE_DIR "${MINIZIP_1_1_INSTALL_PREFIX}/include/" CACHE PATH "Path to the directory which contains the minizip header files")
