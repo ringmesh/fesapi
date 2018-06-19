@@ -19,10 +19,11 @@ under the License.
 #pragma once
 
 #include <string>
+#include "common/EpcDocument.h"
 
 namespace tools
 {
-	class GuidTools
+	class DLL_IMPORT_OR_EXPORT GuidTools
 	{
 	public:
 		GuidTools() {}
