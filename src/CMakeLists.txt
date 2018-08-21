@@ -103,6 +103,7 @@ IF (PROXIES_GENERATION)
 	SET (FESAPI_PROXIES_SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/proxies/envC.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/proxies/stdsoap2.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/proxies/struct_tm.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/proxies/namespace.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/proxies/gsoap_${RESQML_PREFIX_2_0_1}C.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/proxies/gsoap_${WITSML_PREFIX}C.cpp
@@ -276,6 +277,7 @@ ENDIF (WIN32)
 
 INCLUDE_DIRECTORIES (
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${ZLIB_INCLUDE_DIR}
 	${HDF5_C_INCLUDE_DIR}
 	${MINIZIP_INCLUDE_DIR}
 )
@@ -359,9 +361,15 @@ endif (${WITH_JAVA_WRAPPING})
 
 # proxies headers
 INSTALL (
+	FILES ${FESAPI_ROOT_DIR}/src/nsDefinitions.h
+	DESTINATION include/
+)
+
+# proxies headers
+INSTALL (
 	FILES ${FESAPI_PROXIES_HEADERS}
 	DESTINATION include/proxies/
-)	
+)
 
 # main headers
 INSTALL (

@@ -281,7 +281,16 @@ void serializeBoundaries(COMMON_NS::EpcDocument * pck, COMMON_NS::AbstractHdfPro
 	// Features
 	//BoundaryFeature* bf = pck->createBoundaryFeature("", "testingBoundaryFeature");
 	horizon1 = pck->createHorizon("35d7b57e-e5ff-4062-95af-ba2d7c4ce347", "Horizon1");
+	tm timeStruct;
+	timeStruct.tm_hour = 15;
+	timeStruct.tm_min = 2;
+	timeStruct.tm_sec = 35;
+	timeStruct.tm_mday = 8;
+	timeStruct.tm_mon = 1;
+	timeStruct.tm_year = 0;
+	horizon1->setCreation(timeStruct);
 	horizon2 = pck->createHorizon("fd7950a6-f62e-4e47-96c4-048820a61c59", "Horizon2");
+	horizon2->setVersionString("my version string");
 	fault1 = pck->createFault("1424bcc2-3d9d-4f30-b1f9-69dcb897e33b", "Fault1");
 	fault1->setMetadata("", "philippe", 148526020, "philippe", "", 148526100, "F2I", "");
 
@@ -340,6 +349,12 @@ void serializeBoundaries(COMMON_NS::EpcDocument * pck, COMMON_NS::AbstractHdfPro
 	double inlines[5] = { 0, 1, 2, 3, 4 }; // dummy values
 	double crosslines[5] = { 10, 11, 12, 13, 14 }; // dummy values
 	h2i1triRep->addSeismic3dCoordinatesToPatch(1, inlines, crosslines, 5, seismicLatticeRep, hdfProxy);
+
+	// TriRep without interp
+	TriangulatedSetRepresentation* triRepWithoutInterp = pck->createTriangulatedSetRepresentation(nullptr, local3dCrs,
+		"",
+		"TriRep without interp");
+	triRepWithoutInterp->pushBackTrianglePatch(5, explicitPointsHor2Patch0, 3, triangleNodeIndexHorPatch0, hdfProxy);
 
 	//**************
 	// Fault Representations
@@ -639,7 +654,14 @@ void serializeGrid(COMMON_NS::EpcDocument * pck, COMMON_NS::AbstractHdfProxy* hd
 	// Time Series
 	//**************
 	RESQML2_NS::TimeSeries * timeSeries = pck->createTimeSeries("1187d8a0-fa3e-11e5-ac3a-0002a5d5c51b", "Testing time series");
-	timeSeries->pushBackTimestamp(1378217895);
+	tm timeStruct;
+	timeStruct.tm_hour = 15;
+	timeStruct.tm_min = 2;
+	timeStruct.tm_sec = 35;
+	timeStruct.tm_mday = 8;
+	timeStruct.tm_mon = 1;
+	timeStruct.tm_year = 0;
+	timeSeries->pushBackTimestamp(timeStruct);
 	timeSeries->pushBackTimestamp(1409753895);
 	timeSeries->pushBackTimestamp(1441289895);
 	ContinuousProperty* continuousPropTime0 = pck->createContinuousProperty(ijkgrid, "18027a00-fa3e-11e5-8255-0002a5d5c51b", "Time Series Property", 1,
@@ -686,7 +708,7 @@ void serializeGrid(COMMON_NS::EpcDocument * pck, COMMON_NS::AbstractHdfProxy* hd
 	ijkgrid->setIntervalAssociationWithStratigraphicOrganizationInterpretation(&stratiUnitIndice, 1000, stratiColumnRank);
 
 	// Partial transfer
-	UnstructuredGridRepresentation* partialGrid = pck->createPartialUnstructuredGridRepresentation("27290b9a-ff46-47b7-befd-cf6b7836045c", "Partial Grid");
+	UnstructuredGridRepresentation* partialGrid = pck->createPartialUnstructuredGridRepresentation("", "Partial Grid");
 	ContinuousProperty* continuousProp1 = pck->createContinuousProperty(partialGrid, "cd627946-0f89-48fa-b99c-bdb35d8ac4aa", "Testing partial property", 1,
 		gsoap_resqml2_0_1::resqml2__IndexableElements__cells, gsoap_resqml2_0_1::resqml2__ResqmlUom__m, gsoap_resqml2_0_1::resqml2__ResqmlPropertyKind__length);
 	double continuousProp1Values[6] = { 0, 1, 2, 3, 4, 5 };
@@ -1331,11 +1353,20 @@ void showAllMetadata(COMMON_NS::AbstractObject * obj, const std::string & prefix
 		for (unsigned int i = 0; i < obj->getExtraMetadataCount(); ++i) {
 			std::cout << prefix << "Extrametadata is : " << obj->getExtraMetadataKeyAtIndex(i) << ":" << obj->getExtraMetadataStringValueAtIndex(i) << std::endl;
 		}
+		time_t creation = obj->getCreation();
+		std::cout << prefix << "Creation date is (unix timestamp) : " << creation << std::endl;
+		tm creationTm = obj->getCreationAsTimeStructure();
+		std::cout << prefix << "Creation date is (struct tm) : " << 1900 + creationTm.tm_year << "-" << creationTm.tm_mon + 1 << "-" << creationTm.tm_mday << "T" << creationTm.tm_hour << ":" << creationTm.tm_min << ":" << creationTm.tm_sec << std::endl;
+		std::string versionString = obj->getVersionString();
+		if (!versionString.empty()) {
+			std::cout << prefix << "VersionString is : " << versionString << std::endl;
+		}
+		std::cout << prefix << "--------------------------------------------------" << std::endl;
+
 	}
 	else {
 		std::cout << prefix << "IS PARTIAL!" << std::endl;
 	}
-	std::cout << prefix << "--------------------------------------------------" << std::endl;
 }
 
 void showAllSubRepresentations(const vector<RESQML2_NS::SubRepresentation*> & subRepSet)
@@ -2592,6 +2623,7 @@ void deserialize(const string & inputFile)
 	std::vector<Horizon*> horizonSet = pck.getHorizonSet();
 	std::vector<Grid2dRepresentation*> horizonGrid2dSet = pck.getHorizonGrid2dRepSet();
 	std::vector<TriangulatedSetRepresentation*> horizonTriRepSet = pck.getHorizonTriangulatedSetRepSet();
+	std::vector<TriangulatedSetRepresentation*> unclassifiedTriRepSet = pck.getUnclassifiedTriangulatedSetRepSet();
 	std::vector<PolylineRepresentation*> horizonSinglePolylineRepSet = pck.getHorizonPolylineRepSet();
 	std::vector<WellboreFeature*> wellboreSet = pck.getWellboreSet();
 	std::vector<WellboreTrajectoryRepresentation*> wellboreCubicTrajSet = pck.getWellboreTrajectoryRepresentationSet();
@@ -2792,6 +2824,13 @@ void deserialize(const string & inputFile)
 		showAllProperties(horizonTriRepSet[i]);
 	}
 
+	std::cout << "UNCLASSIFIED TRI REP" << endl;
+	for (size_t i = 0; i < unclassifiedTriRepSet.size(); i++) {
+		showAllMetadata(unclassifiedTriRepSet[i]);
+		deserializeActivity(unclassifiedTriRepSet[i]);
+		showAllProperties(unclassifiedTriRepSet[i]);
+	}
+
 	std::cout << "HORIZONS SINGLE POLYLINE REP" << endl;
 	for (size_t i = 0; i < horizonSinglePolylineRepSet.size(); i++)
 	{
@@ -2949,20 +2988,20 @@ void deserialize(const string & inputFile)
 						std::cout << "Non constant parametric line kind" << std::endl;
 						short* pillarKind = new short[paramIjkGrid->getPillarCount()];
 						paramIjkGrid->getParametricLineKind(pillarKind);
-						for (int pillarIndex = 0; pillarIndex < paramIjkGrid->getPillarCount() && pillarIndex < 10; ++pillarIndex) {
+						for (size_t pillarIndex = 0; pillarIndex < paramIjkGrid->getPillarCount() && pillarIndex < 10; ++pillarIndex) {
 							cout << "Pillar index " << pillarIndex << " with kind " << pillarKind[pillarIndex] << endl;
 						}
 						delete[] pillarKind;
 					}
 
-					long patchCount = ijkGrid->getPatchCount();
-					for (long currentPatch = 0; currentPatch < patchCount; ++currentPatch) {
+					unsigned int patchCount = ijkGrid->getPatchCount();
+					for (unsigned int currentPatch = 0; currentPatch < patchCount; ++currentPatch) {
 						ULONG64 nbVertex = ijkGrid->getXyzPointCountOfPatch(currentPatch);
 
 						double* xyzPts = new double[nbVertex * 3];
 						ijkGrid->getXyzPointsOfPatch(currentPatch, xyzPts);
 
-						for (int vIndex = 0; vIndex < nbVertex && vIndex < 10; ++vIndex) {
+						for (size_t vIndex = 0; vIndex < nbVertex && vIndex < 10; ++vIndex) {
 							double x = xyzPts[vIndex * 3];
 							double y = xyzPts[vIndex * 3 + 1];
 							double z = xyzPts[vIndex * 3 + 2];
@@ -3274,6 +3313,12 @@ void deserialize(const string & inputFile)
 	for (size_t i = 0; i < timeSeriesSet.size(); ++i)
 	{
 		showAllMetadata(timeSeriesSet[i]);
+		for (unsigned int j = 0; j < timeSeriesSet[i]->getTimestampCount(); ++j) {
+			time_t creation = timeSeriesSet[i]->getTimestamp(j);
+			std::cout << "Timestamp " << j << " is (unix timestamp) : " << creation << std::endl;
+			tm creationTm = timeSeriesSet[i]->getTimestampAsTimeStructure(j);
+			std::cout << "Timestamp " << j << " is (struct tm) : " << 1900 + creationTm.tm_year << "-" << creationTm.tm_mon + 1 << "-" << creationTm.tm_mday << "T" << creationTm.tm_hour << ":" << creationTm.tm_min << ":" << creationTm.tm_sec << std::endl;
+		}
 		for (size_t j = 0; j < timeSeriesSet[i]->getPropertySet().size(); ++j)
 		{
 			std::cout << endl << "\tPROPERTIES" << endl;
@@ -3429,9 +3474,9 @@ void prodml_deserialize(COMMON_NS::EpcDocument & pck)
 
 		std::cout << "TriggeredMeasurement: " << da->isTriggeredMeasurement() << endl;
 
-		const ULONG64 rawCount = da->getRawCount();
+		const unsigned int rawCount = da->getRawCount();
 		std::cout << "rawCount: " << rawCount << endl;
-		for (ULONG64 rawIndex = 0; rawIndex < rawCount; ++rawIndex) {
+		for (unsigned int rawIndex = 0; rawIndex < rawCount; ++rawIndex) {
 			std::cout << "Raw index: " << rawIndex << endl;
 			const gsoap_eml2_1::prodml2__DasDimensions rawDataSlowestDimension = da->getRawDataSlowestDimension(rawIndex);
 			std::cout << "RawDataSlowestDimension: " << rawDataSlowestDimension << endl;

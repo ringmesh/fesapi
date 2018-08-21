@@ -316,7 +316,7 @@ void DasAcquisition::initHdfAttributes()
 	attributeStringValues.push_back(da->uuid);
 	attributeStringValues.push_back(da->Citation->Title);
 	char buf[20]; // 19 for the string below +1 for the terminating char
-	strftime(buf, 20, "%Y-%m-%dT%H:%M:%S", gmtime(&da->Citation->Creation));
+	strftime(buf, 20, "%Y-%m-%dT%H:%M:%S", &da->Citation->Creation);
 	attributeStringValues.push_back(buf);
 	attributeStringValues.push_back(da->Citation->Format);
 	attributeStringValues.push_back(da->AcquisitionId);
@@ -435,7 +435,7 @@ void DasAcquisition::pushBackRaw(const std::string & guid, bool datatypeIsIntege
 {
 	_prodml2__DasAcquisition* da = static_cast<_prodml2__DasAcquisition*>(gsoapProxy2_1);
 
-	prodml2__DasRaw* dasRaw = pushBackRawXmlOnly(!guid.empty() ? guid : tools::GuidTools::generateUidAsString(),
+	prodml2__DasRaw* dasRaw = pushBackRawXmlOnly(!guid.empty() ? guid : GuidTools::generateUidAsString(),
 		rawDataUnit, da->StartLocusIndex, da->NumberOfLoci, "",
 		timeTools::convertMicrosecondUnixTimestampToIso(timeArray[0]), timeTools::convertMicrosecondUnixTimestampToIso(timeArray[timeCount - 1]), timeCount,
 		prodml2__DasDimensions__time, prodml2__DasDimensions__locus,

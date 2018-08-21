@@ -49,7 +49,7 @@ Well::Well(soap* soapContext,
 
 	well->uid = soap_new_std__string(collection->soap, 1);
 	if (guid.empty()) {
-		well->uid->assign(tools::GuidTools::generateUidAsString());
+		well->uid->assign(GuidTools::generateUidAsString());
 	} else {
 		well->uid->assign(guid);
 	}
@@ -90,7 +90,7 @@ Well::Well(soap* soapContext,
 
 	well->uid = soap_new_std__string(collection->soap, 1);
 	if (guid.empty()) {
-		well->uid->assign(tools::GuidTools::generateUidAsString());
+		well->uid->assign(GuidTools::generateUidAsString());
 	} else {
 		well->uid->assign(guid);
 	}
@@ -115,8 +115,8 @@ Well::Well(soap* soapContext,
 	wellSequence->directionWell = (witsml1__WellDirection *) soap_malloc(collection->soap, sizeof(witsml1__WellDirection));
 	*wellSequence->directionWell = directionWell;
 
-	wellSequence->dTimSpud = (time_t *) soap_malloc(collection->soap, sizeof(time_t));
-	*wellSequence->dTimSpud = dTimSpud;
+	wellSequence->dTimSpud = (tm *) soap_malloc(collection->soap, sizeof(tm));
+	*wellSequence->dTimSpud = *gmtime(&dTimSpud);
 
 	well->__obj_USCOREwell_sequence = wellSequence;
 
@@ -313,7 +313,7 @@ void Well::pushBackDatum(
 {
 	witsml1__cs_USCOREwellDatum* wellDatum = soap_new_witsml1__cs_USCOREwellDatum(collection->soap,1);
 	if (guid.empty()) {
-		wellDatum->uid.assign(tools::GuidTools::generateUidAsString());
+		wellDatum->uid.assign(GuidTools::generateUidAsString());
 	} else {
 		wellDatum->uid.assign(guid);
 	}
@@ -349,7 +349,7 @@ void Well::pushBackDatum(
 {
 	witsml1__cs_USCOREwellDatum* wellDatum = soap_new_witsml1__cs_USCOREwellDatum(collection->soap,1);
 	if (guid.empty()) {
-		wellDatum->uid.assign(tools::GuidTools::generateUidAsString());
+		wellDatum->uid.assign(GuidTools::generateUidAsString());
 	} else {
 		wellDatum->uid.assign(guid);
 	}

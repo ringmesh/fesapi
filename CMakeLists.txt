@@ -28,6 +28,10 @@ endif (${UNDER_DEV})
 
 # we check if Resqml/Witsml proxies are already provided
 FILE (GLOB FESAPI_PROXIES_SOURCES ${FESAPI_ROOT_DIR}/src/proxies/*.cpp)
+SET (FESAPI_PROXIES_SOURCES
+	${FESAPI_PROXIES_SOURCES}
+	${CMAKE_CURRENT_SOURCE_DIR}/src/proxies/struct_tm.cpp
+)
 FILE (GLOB FESAPI_PROXIES_HEADERS ${FESAPI_ROOT_DIR}/src/proxies/*.h)
 IF (FESAPI_PROXIES_SOURCES STREQUAL "")
 	SET (PROXIES_GENERATION ON)
@@ -93,6 +97,10 @@ ENDIF (WIN32)
 
 # Zlib
 FIND_PACKAGE (ZLIB)
+MARK_AS_ADVANCED(CLEAR ZLIB_INCLUDE_DIR)
+IF (NOT EXISTS ${ZLIB_INCLUDE_DIR})
+	MESSAGE(WARNING "The zlib include dir (ZLIB_INCLUDE_DIR variable) does not look to be a valid directory. Please modify it.")
+ENDIF ()
 MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY_RELEASE)
 IF (NOT EXISTS ${ZLIB_LIBRARY_RELEASE})
 	MESSAGE(WARNING "The zlib library (ZLIB_LIBRARY_RELEASE variable) does not look to be a valid file. Please modify it.")
@@ -158,4 +166,4 @@ ENDIF (WIN32)
 ADD_SUBDIRECTORY (src)
 ADD_SUBDIRECTORY (example)
 ADD_SUBDIRECTORY (doc)
-ADD_SUBDIRECTORY (test)
+#ADD_SUBDIRECTORY (test)
