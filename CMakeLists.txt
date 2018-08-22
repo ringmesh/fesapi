@@ -107,7 +107,6 @@ MARK_AS_ADVANCED(CLEAR ZLIB_LIBRARY_RELEASE)
 IF (NOT EXISTS ${ZLIB_LIBRARY_RELEASE})
 	MESSAGE(WARNING "The zlib library (ZLIB_LIBRARY_RELEASE variable) does not look to be a valid file. Please modify it.")
 ENDIF ()
-INCLUDE_DIRECTORIES( ${ZLIB_INCLUDE_DIR} )
 
 # Minizip
 SET (MINIZIP_INCLUDE_DIR MINIZIP_INCLUDE_DIR-NOTFOUND CACHE PATH "Path to the directory which contains the minizip header files")
