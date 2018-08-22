@@ -21,17 +21,7 @@ under the License.
 #include <string>
 #include "common/EpcDocument.h"
 
-namespace tools
+namespace GuidTools
 {
-	class DLL_IMPORT_OR_EXPORT GuidTools
-	{
-	public:
-		GuidTools() {}
-		~GuidTools() {}
-
-		static std::string generateUidAsString();
-	};
+	DLL_IMPORT_OR_EXPORT std::string generateUidAsString();
 }
-
-
-

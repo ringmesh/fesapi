@@ -155,6 +155,12 @@ string AbstractObject::getEditor() const
 
 time_t AbstractObject::getCreation() const
 {
+	tm tmp = getCreationAsTimeStructure();
+	return mktime(&tmp);
+}
+
+tm AbstractObject::getCreationAsTimeStructure() const
+{
 	if (partialObject != nullptr)
 		throw invalid_argument("The wrapped gsoap proxy must not be null");
 
@@ -194,6 +200,17 @@ string AbstractObject::getDescription() const
 
 time_t AbstractObject::getLastUpdate() const
 {
+	tm result = getLastUpdateAsTimeStructure();
+
+	if (result.tm_mday == 0) {
+		return -1;
+	}
+
+	return mktime(&result);
+}
+
+tm AbstractObject::getLastUpdateAsTimeStructure() const
+{
 	if (partialObject != nullptr)
 		throw invalid_argument("The wrapped gsoap proxy must not be null");
 
@@ -201,8 +218,19 @@ time_t AbstractObject::getLastUpdate() const
 		return *gsoapProxy2_0_1->Citation->LastUpdate;
 	else if (gsoapProxy2_1 != nullptr && gsoapProxy2_1->Citation->LastUpdate)
 		return *gsoapProxy2_1->Citation->LastUpdate;
-	else
-		return -1;
+	else {
+		tm result;
+		result.tm_hour = 0;
+		result.tm_isdst = 0;
+		result.tm_mday = 0;
+		result.tm_min = 0;
+		result.tm_mon = 0;
+		result.tm_sec = 0;
+		result.tm_wday = 0;
+		result.tm_yday = 0;
+		result.tm_year = 0;
+		return result;
+	}
 }
 
 string AbstractObject::getFormat() const
@@ -228,7 +256,20 @@ string AbstractObject::getDescriptiveKeywords() const
 	else if (gsoapProxy2_1 != nullptr && gsoapProxy2_1->Citation->DescriptiveKeywords)
 		return *gsoapProxy2_1->Citation->DescriptiveKeywords;
 	else
-		return "";
+		return string();
+}
+
+std::string AbstractObject::getVersionString() const
+{
+	if (partialObject != nullptr)
+		throw invalid_argument("The wrapped gsoap proxy must not be null");
+
+	if (gsoapProxy2_0_1 != nullptr && gsoapProxy2_0_1->Citation->VersionString)
+		return *gsoapProxy2_0_1->Citation->VersionString;
+	else if (gsoapProxy2_1 != nullptr && gsoapProxy2_1->Citation->VersionString)
+		return *gsoapProxy2_1->Citation->VersionString;
+	else
+		return string();
 }
 
 void AbstractObject::setUuid(const std::string & uuid)
@@ -237,8 +278,8 @@ void AbstractObject::setUuid(const std::string & uuid)
 		throw invalid_argument("The wrapped gsoap proxy must not be null");
 
 	if (uuid.empty()) {
-		if (gsoapProxy2_0_1 != nullptr) gsoapProxy2_0_1->uuid = tools::GuidTools::generateUidAsString();
-		else if (gsoapProxy2_1 != nullptr) gsoapProxy2_1->uuid = tools::GuidTools::generateUidAsString();
+		if (gsoapProxy2_0_1 != nullptr) gsoapProxy2_0_1->uuid = GuidTools::generateUidAsString();
+		else if (gsoapProxy2_1 != nullptr) gsoapProxy2_1->uuid = GuidTools::generateUidAsString();
 	}
 	else
 	{
@@ -287,21 +328,27 @@ void AbstractObject::setEditor(const std::string & editor)
 
 void AbstractObject::setCreation(const time_t & creation)
 {
-	if (partialObject != nullptr)
-		throw invalid_argument("The wrapped gsoap proxy must not be null");
-
 	if (creation > 0) {
-		if (gsoapProxy2_0_1 != nullptr) gsoapProxy2_0_1->Citation->Creation = creation;
-		else if (gsoapProxy2_1 != nullptr) gsoapProxy2_1->Citation->Creation = creation;
+		setCreation(*gmtime(&creation));
 	}
 	else {
 		time_t now;
 		time(&now);
-
-		if (gsoapProxy2_0_1 != nullptr) gsoapProxy2_0_1->Citation->Creation = now;
-		else if (gsoapProxy2_1 != nullptr) gsoapProxy2_1->Citation->Creation = now;
+		setCreation(*gmtime(&now));
 	}
-	
+}
+
+void AbstractObject::setCreation(const tm & creation)
+{
+	if (partialObject != nullptr)
+		throw invalid_argument("The wrapped gsoap proxy must not be null");
+
+	if (gsoapProxy2_0_1 != nullptr) {
+		gsoapProxy2_0_1->Citation->Creation = creation;
+	}
+	else if (gsoapProxy2_1 != nullptr) {
+		gsoapProxy2_1->Citation->Creation = creation;
+	}
 }
 
 void AbstractObject::setOriginator(const std::string & originator)
@@ -358,16 +405,26 @@ void AbstractObject::setLastUpdate(const time_t & lastUpdate)
 		throw invalid_argument("The wrapped gsoap proxy must not be null");
 
 	if (lastUpdate > 0) {
-		if (gsoapProxy2_0_1 != nullptr) {
-			if (gsoapProxy2_0_1->Citation->LastUpdate == nullptr)
-				gsoapProxy2_0_1->Citation->LastUpdate = (time_t *)soap_malloc(gsoapProxy2_0_1->soap, sizeof(time_t));
-			*gsoapProxy2_0_1->Citation->LastUpdate = lastUpdate;
+		setLastUpdate(*gmtime(&lastUpdate));
+	}
+}
+
+void AbstractObject::setLastUpdate(const tm & lastUpdate)
+{
+	if (partialObject != nullptr)
+		throw invalid_argument("The wrapped gsoap proxy must not be null");
+
+	if (gsoapProxy2_0_1 != nullptr) {
+		if (gsoapProxy2_0_1->Citation->LastUpdate == nullptr) {
+			gsoapProxy2_0_1->Citation->LastUpdate = (tm *)soap_malloc(gsoapProxy2_0_1->soap, sizeof(tm));
 		}
-		else {
-			if (gsoapProxy2_1->Citation->LastUpdate == nullptr)
-				gsoapProxy2_1->Citation->LastUpdate = (time_t *)soap_malloc(gsoapProxy2_1->soap, sizeof(time_t));
-			*gsoapProxy2_1->Citation->LastUpdate = lastUpdate;
+		*gsoapProxy2_0_1->Citation->LastUpdate = lastUpdate;
+	}
+	else if (gsoapProxy2_1 != nullptr) {
+		if (gsoapProxy2_1->Citation->LastUpdate == nullptr) {
+			gsoapProxy2_1->Citation->LastUpdate = (tm *)soap_malloc(gsoapProxy2_1->soap, sizeof(tm));
 		}
+		*gsoapProxy2_1->Citation->LastUpdate = lastUpdate;
 	}
 }
 
@@ -402,6 +459,26 @@ void AbstractObject::setDescriptiveKeywords(const std::string & descriptiveKeywo
 			if (gsoapProxy2_1->Citation->DescriptiveKeywords == nullptr)
 				gsoapProxy2_1->Citation->DescriptiveKeywords = soap_new_std__string(gsoapProxy2_1->soap, 1);
 			gsoapProxy2_1->Citation->DescriptiveKeywords->assign(descriptiveKeywords);
+		}
+	}
+}
+
+void AbstractObject::setVersionString(const std::string & versionString)
+{
+	if (partialObject != nullptr)
+		throw invalid_argument("The wrapped gsoap proxy must not be null");
+
+	if (!versionString.empty())
+	{
+		if (gsoapProxy2_0_1 != nullptr) {
+			if (gsoapProxy2_0_1->Citation->VersionString == nullptr)
+				gsoapProxy2_0_1->Citation->VersionString = soap_new_std__string(gsoapProxy2_0_1->soap, 1);
+			gsoapProxy2_0_1->Citation->VersionString->assign(versionString);
+		}
+		else {
+			if (gsoapProxy2_1->Citation->VersionString == nullptr)
+				gsoapProxy2_1->Citation->VersionString = soap_new_std__string(gsoapProxy2_1->soap, 1);
+			gsoapProxy2_1->Citation->VersionString->assign(versionString);
 		}
 	}
 }
@@ -481,22 +558,20 @@ void AbstractObject::serializeIntoStream(ostream * stream)
 	}
 }
 
+gsoap_resqml2_0_1::eml20__AbstractCitedDataObject* AbstractObject::getGsoapProxy() const {
+	return gsoapProxy2_0_1;
+}
+
 eml20__DataObjectReference* AbstractObject::newResqmlReference() const
 {
-	ostringstream oss;
-
 	eml20__DataObjectReference* result = soap_new_eml20__DataObjectReference(getGsoapContext(), 1);
 	result->UUID = getUuid();
 	result->Title = getTitle();
 	result->ContentType = getContentType();
-	if (gsoapProxy2_0_1 != nullptr) // Not partial transfer
+	if (gsoapProxy2_0_1 != nullptr && !getVersionString().empty())
 	{
 		result->VersionString = soap_new_std__string(gsoapProxy2_0_1->soap, 1);
-		if (getLastUpdate() != -1)
-			oss << getLastUpdate();
-		else
-			oss << getCreation();
-		result->VersionString->assign(oss.str());
+		result->VersionString->assign(getVersionString());
 	}
 
 	return result;
@@ -504,20 +579,14 @@ eml20__DataObjectReference* AbstractObject::newResqmlReference() const
 
 gsoap_eml2_1::eml21__DataObjectReference* AbstractObject::newEmlReference() const
 {
-	ostringstream oss;
-
 	gsoap_eml2_1::eml21__DataObjectReference* result = gsoap_eml2_1::soap_new_eml21__DataObjectReference(getGsoapContext(), 1);
 	result->Uuid = getUuid();
 	result->Title = getTitle();
 	result->ContentType = getContentType();
-	if (gsoapProxy2_0_1 != nullptr) // Not partial transfer
+	if (gsoapProxy2_0_1 != nullptr && !getVersionString().empty()) // Not partial transfer
 	{
 		result->VersionString = gsoap_eml2_1::soap_new_std__string(gsoapProxy2_0_1->soap, 1);
-		if (getLastUpdate() != -1)
-			oss << getLastUpdate();
-		else
-			oss << getCreation();
-		result->VersionString->assign(oss.str());
+		result->VersionString->assign(getVersionString());
 	}
 
 	return result;
@@ -528,16 +597,13 @@ gsoap_resqml2_0_1::resqml2__ContactElementReference* AbstractObject::newResqmlCo
 	if (partialObject != nullptr)
 		throw invalid_argument("The wrapped gsoap proxy must not be null");
 
-	ostringstream oss;
-
 	resqml2__ContactElementReference* result = soap_new_resqml2__ContactElementReference(gsoapProxy2_0_1->soap, 1);
 	result->UUID = getUuid();
-	result->VersionString = soap_new_std__string(gsoapProxy2_0_1->soap, 1);
-	if (getLastUpdate() != -1)
-		oss << getLastUpdate();
-	else
-		oss << getCreation();
-	result->VersionString->assign(oss.str());
+	if (gsoapProxy2_0_1 != nullptr && !getVersionString().empty()) // Not partial transfer
+	{
+		result->VersionString = gsoap_eml2_1::soap_new_std__string(gsoapProxy2_0_1->soap, 1);
+		result->VersionString->assign(getVersionString());
+	}
 	result->Title = gsoapProxy2_0_1->Citation->Title;
 	result->ContentType = getContentType();
 
