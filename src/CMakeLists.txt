@@ -441,3 +441,5 @@ INSTALL (
 	FILES ${FESAPI_ROOT_DIR}/LICENSE ${FESAPI_ROOT_DIR}/NOTICE 
 	DESTINATION .
 )
+
+install(FILES ../cmake/FindFesapi.cmake DESTINATION lib/cmake/modules COMPONENT devkit)
